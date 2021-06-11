@@ -15,48 +15,62 @@ struct BarView: View {
 
     var body: some View {
             RoundedRectangle(cornerRadius: 20)
-                //.frame(width: (UIScreen.main.bounds.width - CGFloat(numberOfSamples) * 4) / CGFloat(numberOfSamples), height: value)
-                .frame(width: (UIScreen.main.bounds.width - 120) / CGFloat(numberOfSamples), height: value)
+                //.frame(width: (UIScreen.main.bounds.width - CGFloat(numberOfSamples) * 4-120) / CGFloat(numberOfSamples), height: value)
+                .frame(width: (UIScreen.main.bounds.width - 300) / CGFloat(numberOfSamples), height: value)
 
     }
 }
 
 struct ContentView: View {
     
-    let hueColors = stride(from: 0, to: 1, by: 0.01).map {
-            Color(hue: $0, saturation: 1, brightness: 1)
-        }
-
    
         @ObservedObject private var mic = MicrophoneMonitor(numberOfSamples: numberOfSamples)
             
-            // 2
             private func normalizeSoundLevel(level: Float) -> CGFloat {
                 print(level)
                 let level = max(0.1, CGFloat(level) + 50)  // between 0.1 and 25
                 
-                return CGFloat(level * ((UIScreen.main.bounds.height-40) / 50)) // scaled to max at 300 (our height of our bar)
+                return CGFloat(level * ((UIScreen.main.bounds.height-40) / 50))
             }
             
             var body: some View {
-                //多个bar
-//                VStack {
-//                     // 3
-//                    HStack(spacing: 4) {
-//                         // 4
-//                        ForEach(mic.soundSamples, id: \.self) { level in
-//                            BarView(value: self.normalizeSoundLevel(level: level))
-//                        }
-//                    }
-//                }
+                
+
                 ZStack{
                     LinearGradient(gradient: Gradient(colors:[.red,.blue,.green]),startPoint: .top,endPoint: .bottom)
                         .mask(
+                            //多个bar
+//                            HStack(spacing:4){
+//                                ForEach(mic.soundSamples,id:\.self){ level in
+//                                    VStack(alignment: .leading){
+//                                    Spacer()
+//                                    BarView(value: self.normalizeSoundLevel(level: level))
+//                                        .animation(.easeInOut)
+//                                }
+//
+//                                }
+//
+//                            }
+                            // 单个bar
                             VStack(alignment: .leading){
                             Spacer()
                             BarView(value: self.normalizeSoundLevel(level: mic.soundSamples[0]))
                                 .animation(.easeInOut)
-                        })
+                        }
+                            )
+                    // 网格遮罩
+                    VStack{
+                        ForEach(0..<20){ num in
+                            Spacer()
+                            Rectangle()
+                                .colorInvert()
+                                .frame(width: UIScreen.main.bounds.width, height: 5, alignment: .leading)
+                            Spacer()
+                                
+                            
+                            
+                        }
+                    }
                     
                     
                     

@@ -11,14 +11,14 @@ import AVFoundation
 
 class MicrophoneMonitor: ObservableObject {
     
-    // 1
+
     private var audioRecorder: AVAudioRecorder
     private var timer: Timer?
     
     private var currentSample: Int
     private let numberOfSamples: Int
     
-    // 2
+
     @Published public var soundSamples: [Float]
     
     init(numberOfSamples: Int) {
@@ -26,7 +26,6 @@ class MicrophoneMonitor: ObservableObject {
         self.soundSamples = [Float](repeating: .zero, count: numberOfSamples)
         self.currentSample = 0
         
-        // 3
         let audioSession = AVAudioSession.sharedInstance()
         if audioSession.recordPermission != .granted {
             audioSession.requestRecordPermission { (isGranted) in
@@ -36,7 +35,6 @@ class MicrophoneMonitor: ObservableObject {
             }
         }
         
-        // 4
         let url = URL(fileURLWithPath: "/dev/null", isDirectory: true)
         let recorderSettings: [String:Any] = [
             AVFormatIDKey: NSNumber(value: kAudioFormatAppleLossless),
@@ -45,7 +43,6 @@ class MicrophoneMonitor: ObservableObject {
             AVEncoderAudioQualityKey: AVAudioQuality.min.rawValue
         ]
         
-        // 5
         do {
             audioRecorder = try AVAudioRecorder(url: url, settings: recorderSettings)
             try audioSession.setCategory(.playAndRecord, mode: .default, options: [])
@@ -56,19 +53,17 @@ class MicrophoneMonitor: ObservableObject {
         }
     }
     
-    // 6
     private func startMonitoring() {
         audioRecorder.isMeteringEnabled = true
         audioRecorder.record()
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { (timer) in
-            // 7
+        timer = Timer.scheduledTimer(withTimeInterval: 0.04, repeats: true, block: { (timer) in
+
             self.audioRecorder.updateMeters()
             self.soundSamples[self.currentSample] = self.audioRecorder.averagePower(forChannel: 0)
             self.currentSample = (self.currentSample + 1) % self.numberOfSamples
         })
     }
     
-    // 8
     deinit {
         timer?.invalidate()
         audioRecorder.stop()
